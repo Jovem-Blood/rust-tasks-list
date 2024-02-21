@@ -6,6 +6,8 @@ use std::{
 
 use clearscreen::clear;
 
+use crate::task::*;
+
 pub const FILE_PATH: &str = "./tasks.txt";
 
 pub fn prompt(text: &str) -> Result<String, Box<dyn Error>> {
@@ -109,18 +111,8 @@ pub fn update_tasks() {
 
 pub fn read_tasks() {
     clear().unwrap();
-    match fs::read_to_string(FILE_PATH) {
-        Ok(file_content) => {
-            for (index, line) in file_content.lines().enumerate() {
-                let split: Vec<&str> = line.split(";").collect();
-                println!("ID: {}", index);
-                println!("Title: {}", split[0]);
-                println!("Description: {}", split[1]);
-                println!("--------------------------");
-            }
-        }
-        Err(_) => {
-            println!("Could not open this file");
-        }
+    let tasks = get_tasks_from_file().unwrap();
+    for (index, task) in tasks.into_iter().enumerate() {
+        task.print(index)
     }
 }

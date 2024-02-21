@@ -1,4 +1,5 @@
 mod methods;
+mod task;
 use std::error::Error;
 
 use methods::*;
