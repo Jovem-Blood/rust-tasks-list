@@ -94,17 +94,9 @@ pub fn update_tasks() {
     let mut fields: Vec<String> = editing_line.split(";").map(|s| s.to_string()).collect();
 
     match opt.as_str() {
-        "1" => {
-            let new_value = prompt("New title: ").unwrap();
-            fields[0] = new_value;
-        }
-        "2" => {
-            let new_value = prompt("New description: ").unwrap();
-            fields[1] = new_value;
-        }
-        _ => {
-            println!("This value is ilegal")
-        }
+        "1" => fields[0] = prompt("New title: ").unwrap(),
+        "2" => fields[1] = prompt("New description: ").unwrap(),
+        _ => println!("This value is ilegal"),
     }
 
     lines[index] = fields.join(";");
@@ -130,4 +122,3 @@ pub fn read_tasks() {
         }
     }
 }
-
