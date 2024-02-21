@@ -41,7 +41,7 @@ pub fn create_task() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn delete_task() {
+pub fn delete_task() -> Result<(), Box<dyn Error>> {
     clear().unwrap();
     let file_content = fs::read_to_string(FILE_PATH).expect("Could not open this file");
 
@@ -53,13 +53,26 @@ pub fn delete_task() {
         println!("--------------------------");
     }
 
-    let mut lines: Vec<String> = file_content.lines().map(|s| s.to_string()).collect();
-    let ind = prompt("Which one you want to delete? ").unwrap();
-    let index = ind.parse::<usize>().unwrap();
-    lines.remove(index);
-    let full_content = lines.join("\n");
-    let mut f = File::create(FILE_PATH).unwrap();
-    f.write_all(full_content.as_bytes()).unwrap();
+    loop {
+        let mut lines: Vec<String> = file_content.lines().map(|s| s.to_string()).collect();
+        let ind = prompt("Which one you want to delete? ").unwrap();
+        if let Ok(index) = ind.parse::<usize>() {
+            if index < lines.len() {
+                lines.remove(index);
+                let full_content = lines.join("\n");
+                let mut f = File::create(FILE_PATH).unwrap();
+                f.write_all(full_content.as_bytes())?;
+                return Ok(())
+            } else {
+                println!("Invalid index. Please enter a number between 0 and {}", lines.len() - 1);
+                continue;
+            }
+        } else {
+            println!("Please, Enter a valid number");
+            continue;
+        }
+
+    }
 }
 
 pub fn update_tasks() {

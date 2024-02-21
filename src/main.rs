@@ -13,19 +13,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         option = option.to_uppercase();
 
         match option.as_str() {
-            "C" => {
-                create_task()?;
-            }
+            "C" => create_task()?,
             "R" => {
                 read_tasks();
             }
             "U" => {
                 update_tasks();
             }
-            "D" => {
-                delete_task();
-                println!("Deleting task")
-            }
+            "D" => delete_task()?,
             "Q" => {
                 println!("Quiting");
                 break;
