@@ -14,9 +14,8 @@ pub fn prompt(text: &str) -> Result<String, Box<dyn Error>> {
     io::stdout().flush().unwrap();
     io::stdin()
         .read_line(&mut option)
-        .expect("Error while reading line");
-
-    Ok(option.trim().to_string())
+        .map(|_| option.trim().to_string())
+        .map_err(|e| Box::new(e) as Box<dyn Error>)
 }
 
 pub fn options_menu() {
