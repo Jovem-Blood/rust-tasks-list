@@ -61,16 +61,18 @@ pub fn delete_task() -> Result<(), Box<dyn Error>> {
                 let full_content = lines.join("\n");
                 let mut f = File::create(FILE_PATH).unwrap();
                 f.write_all(full_content.as_bytes())?;
-                return Ok(())
+                return Ok(());
             } else {
-                println!("Invalid index. Please enter a number between 0 and {}", lines.len() - 1);
+                println!(
+                    "Invalid index. Please enter a number between 0 and {}",
+                    lines.len() - 1
+                );
                 continue;
             }
         } else {
             println!("Please, Enter a valid number");
             continue;
         }
-
     }
 }
 
