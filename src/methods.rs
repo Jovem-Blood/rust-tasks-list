@@ -1,10 +1,7 @@
 use std::{
     error::Error,
-    fs::{self, File, OpenOptions},
     io::{self, Write},
 };
-
-use clearscreen::clear;
 
 use crate::task::*;
 
@@ -31,43 +28,29 @@ pub fn options_menu() {
 pub fn create_task() -> Result<(), Box<dyn Error>> {
     let title = prompt("What is the task's title? ")?;
     let description = prompt("Give a description to it: ")?;
-
-    let mut data_file = OpenOptions::new()
-        .append(true)
-        .open(FILE_PATH)
-        .expect("Could not open this file :/");
-
-    let new_content = format!("{};{}\n", title, description);
-    data_file.write(new_content.as_bytes())?;
-    Ok(())
+    let task = Task::new(title, description);
+    let mut tasks = read_tasks_file().unwrap();
+    tasks.push(task);
+    write_tasks_file(&tasks)
 }
 
 pub fn delete_task() -> Result<(), Box<dyn Error>> {
-    clear().unwrap();
-    let file_content = fs::read_to_string(FILE_PATH).expect("Could not open this file");
+    let tasks = &mut read_tasks_file().unwrap();
 
-    for (index, line) in file_content.lines().enumerate() {
-        let split: Vec<&str> = line.split(";").collect();
-        println!("ID: {}", index);
-        println!("Title: {}", split[0]);
-        println!("Description: {}", split[1]);
-        println!("--------------------------");
+    for (index, task) in tasks.into_iter().enumerate() {
+        task.print(index)
     }
 
     loop {
-        let mut lines: Vec<String> = file_content.lines().map(|s| s.to_string()).collect();
         let ind = prompt("Which one you want to delete? ").unwrap();
         if let Ok(index) = ind.parse::<usize>() {
-            if index < lines.len() {
-                lines.remove(index);
-                let full_content = lines.join("\n");
-                let mut f = File::create(FILE_PATH).unwrap();
-                f.write_all(full_content.as_bytes())?;
-                return Ok(());
+            if index < tasks.len() {
+                tasks.remove(index);
+                return write_tasks_file(tasks);
             } else {
                 println!(
                     "Invalid index. Please enter a number between 0 and {}",
-                    lines.len() - 1
+                    tasks.len() - 1
                 );
                 continue;
             }
@@ -78,41 +61,48 @@ pub fn delete_task() -> Result<(), Box<dyn Error>> {
     }
 }
 
-pub fn update_tasks() {
-    clear().unwrap();
-    let file_content = fs::read_to_string(FILE_PATH).expect("Could not open this file");
+pub fn update_tasks() -> Result<(), Box<dyn Error>> {
+    let tasks = &mut read_tasks_file().unwrap();
 
-    for (index, line) in file_content.lines().enumerate() {
-        let split: Vec<&str> = line.split(";").collect();
-        println!("ID: {}", index);
-        println!("Title: {}", split[0]);
-        println!("Description: {}", split[1]);
-        println!("--------------------------");
-    }
-
-    let mut lines: Vec<String> = file_content.lines().map(|s| s.to_string()).collect();
-    let ind = prompt("Which one you want to update? ").unwrap();
-    let index = ind.parse::<usize>().unwrap();
-    let editing_line = lines[index].clone();
-    let opt = prompt("Type 1 for edit the title and 2 for the description ").unwrap();
-    let mut fields: Vec<String> = editing_line.split(";").map(|s| s.to_string()).collect();
-
-    match opt.as_str() {
-        "1" => fields[0] = prompt("New title: ").unwrap(),
-        "2" => fields[1] = prompt("New description: ").unwrap(),
-        _ => println!("This value is ilegal"),
-    }
-
-    lines[index] = fields.join(";");
-    let full_content = lines.join("\n");
-    let mut f = File::create(FILE_PATH).unwrap();
-    f.write_all(full_content.as_bytes()).unwrap();
-}
-
-pub fn read_tasks() {
-    clear().unwrap();
-    let tasks = get_tasks_from_file().unwrap();
     for (index, task) in tasks.into_iter().enumerate() {
         task.print(index)
     }
+
+    loop {
+        let ind = prompt("Which one you want to update? ").unwrap();
+        if let Ok(index) = ind.parse::<usize>() {
+            if index < tasks.len() {
+                let task = tasks.get_mut(index).unwrap();
+                let opt = prompt("Type 1 for edit the title and 2 for the description ").unwrap();
+
+                match opt.as_str() {
+                    "1" => task.set_title(prompt("New title: ").unwrap()),
+                    "2" => task.set_description(prompt("New description: ").unwrap()),
+                    _ => println!("This value is ilegal"),
+                }
+
+                break;
+            } else {
+                println!(
+                    "Invalid index. Please enter a number between 0 and {}",
+                    tasks.len() - 1
+                );
+                continue;
+            }
+        } else {
+            println!("Please, Enter a valid number");
+            continue;
+        }
+    }
+    write_tasks_file(tasks)
+}
+
+pub fn read_tasks() -> Result<(), Box<dyn Error>> {
+    read_tasks_file()
+        .map(|tasks| {
+            for (index, task) in tasks.into_iter().enumerate() {
+                task.print(index)
+            }
+        })
+        .map_err(|e| e)
 }

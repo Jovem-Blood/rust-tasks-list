@@ -2,6 +2,7 @@ mod methods;
 mod task;
 use std::error::Error;
 
+use clearscreen::clear;
 use methods::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -13,14 +14,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         option = prompt("Enter your option: ").unwrap();
         option = option.to_uppercase();
 
+        clear().unwrap();
         match option.as_str() {
             "C" => create_task()?,
-            "R" => {
-                read_tasks();
-            }
-            "U" => {
-                update_tasks();
-            }
+            "R" => read_tasks()?,
+            "U" => update_tasks()?,
             "D" => delete_task()?,
             "Q" => {
                 println!("Quiting");
